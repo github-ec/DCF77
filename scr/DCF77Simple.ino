@@ -21,7 +21,7 @@ private:
 public:
   void begin(byte pin) {
     _pin = pin;
-    pinMode(_pin, INPUT);
+    pinMode(_pin, INPUT_PULLUP);  // To allow for timeouts if not connected
     _lastState = digitalRead(_pin);
   };
   bool pinIsHigh() {
@@ -83,12 +83,14 @@ bool synced = false;
 
 void loop() {
   if (!synced && dcfState() == STATE::SYNC) {
-    Serial.print(F("Sync Found "));
-    Serial.println(receiver.getLowTime());
+    Serial.println(F("Sync Found"));
     synced = true;
   }
   if (synced) {
     synced = syncedStateMachine();
+    if (!synced){
+      Serial.println(F("Sync Lost"));
+    }
   }
 }
 
@@ -131,7 +133,7 @@ bool syncedStateMachine() {
       break;
     case STATE::SYNC:
       count = 0;
-      Serial.println(F("\nReSynced"));
+      Serial.println(F("\nRe-Synced"));
       return true;
       break;
     case STATE::ZERO:
